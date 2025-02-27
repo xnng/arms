@@ -1,5 +1,8 @@
-import { Arms } from './arms';
-import { ArmsConfig } from './types';
+import { createArms } from './arms';
+import { PlatformType } from './platform';
 
-// 导出类型和类，让用户自己创建实例
-export { Arms, ArmsConfig };
+// 导出类型和函数
+export {
+  createArms,
+  PlatformType
+};

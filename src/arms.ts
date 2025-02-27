@@ -1,58 +1,60 @@
-import dayjs from 'dayjs';
-import { ArmsConfig, LogData } from './types';
-import { sleep, generateUniqueId, getDeviceId } from './utils';
-import {
-  weappConfig,
-  deviceInfo,
-  appBaseInfo,
-  weappStateInfo,
-  getAccountInfo,
-  getDeviceInfo,
-  getAppBaseInfo,
-  getEnterInfo,
-  initWeappState
-} from './platform';
+import { BaseConfig, IPlatform, LogData } from './types';
+import { PlatformType, PlatformFactory } from './platform';
+import { sleep } from './utils';
 
 /**
- * Arms 监控上报类
+ * Arms 类
  */
 export class Arms {
-  private config: Required<ArmsConfig>;
-  private tasks: LogData[] = [];
-  private running: boolean = false;
-
-  // 用户自定义键值
-  private user_key_1: string = '';
-  private user_key_2: string = '';
-  private user_key_3: string = '';
-  private user_key_4: string = '';
-  private user_key_5: string = '';
-  private user_key_6: string = '';
+  /** 配置 */
+  protected config: Required<BaseConfig>;
+  /** 上报队列 */
+  protected queue: LogData[];
+  /** 用户自定义键1 */
+  protected user_key_1: string;
+  /** 用户自定义键2 */
+  protected user_key_2: string;
+  /** 用户自定义键3 */
+  protected user_key_3: string;
+  /** 用户自定义键4 */
+  protected user_key_4: string;
+  /** 用户自定义键5 */
+  protected user_key_5: string;
+  /** 用户自定义键6 */
+  protected user_key_6: string;
+  /** 平台实现 */
+  protected platform: IPlatform<LogData>;
+  /** 是否正在上报 */
+  private isUploading: boolean;
+  /** 默认配置 */
+  private defaultConfig: Partial<BaseConfig> = {
+    maxUploadNum: 10,
+    initDelay: 2000,
+    emptyQueueWaitTime: 1000,
+    uploadWaitTime: 1000,
+    errorWaitTime: 3000
+  };
 
   /**
    * 构造函数
-   * @param config 配置项
+   * @param config 配置
+   * @param platformType 平台类型
    */
-  constructor(config: ArmsConfig) {
-    // 默认配置
-    const defaultConfig: Omit<Required<ArmsConfig>, keyof ArmsConfig> = {
-      // 单次最大上传数量
-      maxUploadNum: 10,
-      // 初始化延迟时间（毫秒）
-      initDelay: 2000,
-      // 无任务等待时间（毫秒）
-      emptyQueueWaitTime: 1000,
-      // 上传后等待时间（毫秒）
-      uploadWaitTime: 1000,
-      // 错误后等待时间（毫秒）
-      errorWaitTime: 3000
-    };
+  constructor(config: BaseConfig, platformType: PlatformType) {
+    // 创建对应平台的实现
+    this.platform = PlatformFactory.createPlatform(platformType) as IPlatform<LogData>;
 
     // 合并默认配置和用户配置
-    this.config = { ...defaultConfig, ...config } as Required<ArmsConfig>;
-
-    // 初始化小程序状态信息
-    initWeappState();
+    this.config = { ...this.defaultConfig, ...config } as Required<BaseConfig>;
+    this.platform.init();
+    this.queue = [];
+    this.isUploading = false;
+    this.user_key_1 = '';
+    this.user_key_2 = '';
+    this.user_key_3 = '';
+    this.user_key_4 = '';
+    this.user_key_5 = '';
+    this.user_key_6 = '';
 
     // 初始化上报队列
     setTimeout(() => {
@@ -61,107 +63,78 @@ export class Arms {
   }
 
   /**
-   * 上报错误信息
-   * @param stack 错误堆栈
+   * 上报错误
+   * @param msg 错误信息
    * @param desc 错误描述
    */
-  public error(stack: string, desc?: string): void {
-    this.upload('error', stack, desc);
+  public error(msg: string | Error | object, desc?: string): void {
+    this.upload(msg, desc, 'error');
   }
 
   /**
-   * 设置用户自定义键值
-   * @param key 键名，支持 user_key_1 到 user_key_6
-   * @param value 键值，会被转换为字符串
+   * 设置用户自定义键
+   * @param index 键索引
+   * @param value 键值
    */
-  public setUserKey(key: string, value: any): void {
-    try {
-      // 检查键名是否合法
-      if (!/^user_key_[1-6]$/.test(key)) {
-        console.log('无效的键名，应为 user_key_1 到 user_key_6');
-        return;
-      }
+  public setUserKey(index: number, value: string): void {
+    if (index < 1 || index > 6) {
+      console.error('用户自定义键索引必须在1-6之间');
+      return;
+    }
 
-      // 将值转换为字符串
-      const strValue = Object.prototype.toString.call(value) === '[object Object]' ?
-        JSON.stringify(value) : String(value);
-
-      // 使用类型断言安全地设置属性
-      (this as any)[key] = strValue;
-    } catch (error) {
-      console.log('设置用户自定义键值出错', error);
+    switch (index) {
+      case 1:
+        this.user_key_1 = value;
+        break;
+      case 2:
+        this.user_key_2 = value;
+        break;
+      case 3:
+        this.user_key_3 = value;
+        break;
+      case 4:
+        this.user_key_4 = value;
+        break;
+      case 5:
+        this.user_key_5 = value;
+        break;
+      case 6:
+        this.user_key_6 = value;
+        break;
     }
   }
 
   /**
-   * 上报日志信息
+   * 上传日志
+   * @param msg 日志信息
+   * @param desc 日志描述
    * @param type 日志类型
-   * @param stack 错误堆栈
-   * @param desc 错误描述
-   * @private 私有方法，不对外暴露
    */
-  private upload(type: string, msg: any, desc?: string): void {
+  protected upload(msg: string | Error | object, desc?: string, type: string = 'error'): void {
     try {
-      // 确保获取到小程序账号信息
-      if (!weappConfig.appId) {
-        getAccountInfo();
+      // 处理 Error 对象
+      if (msg instanceof Error) {
+        const error = msg;
+        msg = error.stack || error.message
       }
 
-      // 确保获取到设备信息
-      if (!deviceInfo.brand || !deviceInfo.model) {
-        getDeviceInfo();
-      }
+      // 获取平台特定的日志数据
+      const data = this.platform.getLogData(msg, desc, type);
 
-      // 确保获取到应用基础信息
-      if (!appBaseInfo.SDKVersion || !appBaseInfo.language) {
-        getAppBaseInfo();
-      }
-
-      // 确保获取到小程序启动信息
-      const enterInfo = getEnterInfo()
-
-      // 构建日志数据
-      const data: LogData = {
-        logid: generateUniqueId(32),
-        version: this.config.appVersion,
-        appid: this.config.appId,
-        logtime: dayjs().format('YYYY-MM-DD HH:mm:ss.SSS'),
-        msg: Object.prototype.toString.call(msg) === '[object Object]' ? JSON.stringify(msg) : String(msg),
-        desc: desc || '',
-        type,
-        weapp_account_appid: weappConfig.appId,
-        weapp_account_env: weappConfig.envVersion,
-        weapp_account_version: weappConfig.version,
-        weapp_device_brand: deviceInfo.brand,
-        weapp_device_model: deviceInfo.model,
-        weapp_device_system: deviceInfo.system,
-        weapp_device_platform: deviceInfo.platform,
-        weapp_device_cpu_type: deviceInfo.cpuType,
-        weapp_device_memory_size: deviceInfo.memorySize,
-        weapp_base_sdk_version: appBaseInfo.SDKVersion,
-        weapp_base_enable_debug: appBaseInfo.enableDebug,
-        weapp_base_language: appBaseInfo.language,
-        weapp_base_version: appBaseInfo.version,
-        weapp_base_font_size_scale_factor: appBaseInfo.fontSizeScaleFactor,
-        weapp_base_font_size_setting: appBaseInfo.fontSizeSetting,
-        weapp_enter_scene: enterInfo.scene,
-        weapp_enter_path: enterInfo.path,
-        weapp_enter_query: enterInfo.query,
-        weapp_enter_refer_info: enterInfo.referrerInfo,
-        weapp_state: weappStateInfo.state,
-        device_id: getDeviceId(),
-        user_key_1: this.user_key_1,
-        user_key_2: this.user_key_2,
-        user_key_3: this.user_key_3,
-        user_key_4: this.user_key_4,
-        user_key_5: this.user_key_5,
-        user_key_6: this.user_key_6,
-      };
+      // 填充通用字段
+      data.version = this.config.appVersion;
+      data.appid = this.config.appId;
+      data.user_key_1 = this.user_key_1;
+      data.user_key_2 = this.user_key_2;
+      data.user_key_3 = this.user_key_3;
+      data.user_key_4 = this.user_key_4;
+      data.user_key_5 = this.user_key_5;
+      data.user_key_6 = this.user_key_6;
 
       // 添加到上报队列
-      this.tasks.push(data);
+      this.queue.push(data);
     } catch (error) {
-      console.log('日志方法出错');
+      console.error('构建日志数据出错', error);
     }
   }
 
@@ -169,41 +142,53 @@ export class Arms {
    * 运行上报队列
    */
   private async runQueue(): Promise<void> {
-    // 防止重复运行
-    if (this.running) return;
-    this.running = true;
-
     while (true) {
       try {
-        // 没有任务时等待
-        if (this.tasks.length === 0) {
+        // 队列为空，等待一段时间
+        if (this.queue.length === 0) {
           await sleep(this.config.emptyQueueWaitTime);
           continue;
         }
 
-        // 从队列中取出任务，最多取 maxUploadNum 个
-        const tasksToUpload = this.tasks.splice(0, this.config.maxUploadNum);
-
-        if (tasksToUpload.length > 0) {
-          await uni.request({
-            url: this.config.slsUrl,
-            method: 'POST',
-            header: {
-              'x-log-apiversion': '0.6.0'
-            },
-            data: {
-              '__logs__': tasksToUpload
-            }
-          });
+        // 已经在上报中，等待下一次循环
+        if (this.isUploading) {
+          await sleep(100);
+          continue;
         }
 
-        // 每次上传后等待一段时间
-        await sleep(this.config.uploadWaitTime);
+        // 开始上报
+        this.isUploading = true;
+
+        // 从队列中取出指定数量的日志
+        const logs = this.queue.splice(0, this.config.maxUploadNum);
+
+        // 上报日志
+        try {
+          await this.platform.uploadLog(logs, this.config.slsUrl);
+          // 上报成功后等待一段时间
+          await sleep(this.config.uploadWaitTime);
+        } catch (error) {
+          console.error('上报日志出错', error);
+          // 上报失败后等待一段时间
+          await sleep(this.config.errorWaitTime);
+        } finally {
+          // 结束上报
+          this.isUploading = false;
+        }
       } catch (error) {
-        console.log('日志上传出错', error);
-        // 出错后等待一段时间再重试
+        console.error('运行上报队列出错', error);
         await sleep(this.config.errorWaitTime);
       }
     }
   }
+}
+
+/**
+ * 创建 Arms 实例
+ * @param config 配置
+ * @param platformType 平台类型
+ * @returns Arms 实例
+ */
+export function createArms(config: BaseConfig, platformType: PlatformType) {
+  return new Arms(config, platformType);
 }

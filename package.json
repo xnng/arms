@@ -30,15 +30,19 @@
   "devDependencies": {
     "@easyv/sync-to-mirror": "^0.0.2",
     "@rollup/plugin-commonjs": "^24.0.0",
+    "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^15.0.0",
     "@rollup/plugin-typescript": "^11.0.0",
     "@types/node": "^18.11.18",
+    "axios": "^1.8.1",
+    "dayjs": "^1.11.7",
     "rollup": "^3.10.0",
     "rollup-plugin-terser": "^7.0.2",
     "tslib": "^2.4.1",
     "typescript": "^4.9.4"
   },
-  "dependencies": {
-    "dayjs": "^1.11.7"
+  "peerDependencies": {
+    "axios": "^1.0.0",
+    "dayjs": "^1.0.0"
   }
 }
