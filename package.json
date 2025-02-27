@@ -1,0 +1,44 @@
+{
+  "name": "@xnng/arms",
+  "version": "1.0.0",
+  "description": "前端应用监控",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "rollup -c -w",
+    "build": "rollup -c",
+    "type-check": "tsc --noEmit",
+    "postpublish": "sync-to-mirror"
+  },
+  "keywords": [
+    "arms"
+  ],
+  "author": "xnng",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xnng/arms.git"
+  },
+  "bugs": {
+    "url": "https://github.com/xnng/arms/issues"
+  },
+  "homepage": "https://github.com/xnng/arms#readme",
+  "devDependencies": {
+    "@easyv/sync-to-mirror": "^0.0.2",
+    "@rollup/plugin-commonjs": "^24.0.0",
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "@rollup/plugin-typescript": "^11.0.0",
+    "@types/node": "^18.11.18",
+    "rollup": "^3.10.0",
+    "rollup-plugin-terser": "^7.0.2",
+    "tslib": "^2.4.1",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "dayjs": "^1.11.7"
+  }
+}
