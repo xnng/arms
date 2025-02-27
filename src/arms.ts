@@ -111,6 +111,19 @@ export class Arms {
         getAppBaseInfo();
       }
 
+      // 获取当前页面路径
+      let pagePath = '';
+      try {
+        const pages = uni.getCurrentPages();
+        if (pages && pages.length > 0) {
+          // 获取当前页面（数组最后一个元素）
+          const currentPage = pages[pages.length - 1];
+          pagePath = currentPage.route || currentPage.__route__ || '';
+        }
+      } catch (error) {
+        console.log('获取当前页面路径出错', error);
+      }
+
       // 构建日志数据
       const data: LogData = {
         logid: generateUniqueId(32),
@@ -119,6 +132,7 @@ export class Arms {
         logtime: dayjs().format('YYYY-MM-DD HH:mm:ss.SSS'),
         msg: Object.prototype.toString.call(msg) === '[object Object]' ? JSON.stringify(msg) : String(msg),
         desc: desc || '',
+        page_path: pagePath,
         type,
         weapp_account_appid: weappConfig.appId,
         weapp_account_env: weappConfig.envVersion,

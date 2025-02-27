@@ -74,6 +74,8 @@ export interface LogData {
   msg: string;
   /** 日志描述 */
   desc: string;
+  /** 当前页面路径 */
+  page_path: string;
   /** 日志类型 */
   type: string;
   /** 微信小程序 appId */
@@ -139,6 +141,15 @@ export interface UniApp {
   getStorageSync: (key: string) => any;
   /** 将数据同步存储在本地缓存中指定的 key 中，会覆盖掉原来该 key 对应的内容 */
   setStorageSync: (key: string, data: any) => void;
+  /** 获取当前页面路径 */
+  getCurrentPages: () => Array<{
+    /** 页面路径 */
+    route: string;
+    /** 页面参数 */
+    options: Record<string, any>;
+    /** 页面完整路径 */
+    __route__: string;
+  }>;
   /** 发起网络请求 */
   request: (options: {
     /** 请求地址 */
