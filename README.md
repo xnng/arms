@@ -32,7 +32,7 @@ yarn add axios dayjs
 
 ## 使用方法
 
-### 使用工厂函数创建实例
+### 创建监控实例
 
 ```javascript
 import { createArms, PlatformType } from '@xnng/arms';
@@ -41,7 +41,8 @@ import { createArms, PlatformType } from '@xnng/arms';
 const weappArms = createArms({
   slsUrl: 'https://your-log-service-url',
   appId: 'your-app-id',
-  appVersion: '1.0.0'
+  appVersion: '1.0.0',
+  autoCapture: true
 }, PlatformType.WEAPP);
 
 // 创建 H5 实例
@@ -49,46 +50,33 @@ const h5Arms = createArms({
   slsUrl: 'https://your-log-service-url',
   appId: 'your-app-id',
   appVersion: '1.0.0',
-  autoCapture: true // 自动捕获未处理的错误
+  autoCapture: true
 }, PlatformType.H5);
-
-// 上报错误
-weappArms.error('发生了一个错误');
-weappArms.error(new Error('错误对象'));
-weappArms.error('错误信息', '错误描述');
-
-// 设置用户自定义键值
-weappArms.setUserKey(1, 'user_id_123');
-weappArms.setUserKey(2, 'channel_abc');
 ```
 
-### 直接创建平台特定实例
+### 上报错误
 
 ```javascript
-// 小程序
-import { WeappArms } from '@xnng/arms';
+// 优先上报错误堆栈
+arms.error(error.stack);
 
-const weappArms = new WeappArms({
-  slsUrl: 'https://your-log-service-url',
-  appId: 'your-app-id',
-  appVersion: '1.0.0'
-});
+// 上报错误对象
+arms.error(new Error('错误对象'));
 
-// H5
-import { H5Arms } from '@xnng/arms';
-
-const h5Arms = new H5Arms({
-  slsUrl: 'https://your-log-service-url',
-  appId: 'your-app-id',
-  appVersion: '1.0.0',
-  autoCapture: true  // 自动捕获未处理的错误
-});
+// 上报错误信息和描述
+arms.error('错误信息', '错误描述');
 ```
 
-## 依赖说明
+### 设置用户自定义键值
 
-- 小程序平台：依赖 UniApp API
-- H5 平台：依赖 axios 进行网络请求
+用户自定义键值可用于业务标记，方便日志分析和筛选。
+
+```javascript
+// 设置用户自定义键值，索引范围 1-6
+arms.setUserKey(1, 'user_id_123');
+arms.setUserKey(2, 'channel_abc');
+arms.setUserKey(3, 'version_1.0.0');
+```
 
 ## 配置项
 
@@ -104,12 +92,12 @@ const h5Arms = new H5Arms({
 | emptyQueueWaitTime | number | 否 | 1000 | 无任务等待时间（毫秒） |
 | uploadWaitTime | number | 否 | 1000 | 上传后等待时间（毫秒） |
 | errorWaitTime | number | 否 | 3000 | 错误后等待时间（毫秒） |
-
-### H5 平台特有配置
-
-| 参数 | 类型 | 必填 | 默认值 | 说明 |
-| --- | --- | --- | --- | --- |
 | autoCapture | boolean | 否 | false | 是否自动捕获未处理的错误 |
+
+## 依赖说明
+
+- 小程序平台：依赖 UniApp API
+- H5 平台：依赖 axios 进行网络请求
 
 ## API
 
@@ -119,17 +107,38 @@ const h5Arms = new H5Arms({
 
 | 参数 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
-| msg | string \| Error \| object | 是 | 错误信息或错误对象 |
+| msg | string | Error | object | 是 | 错误信息、错误对象或自定义对象 |
 | desc | string | 否 | 错误描述，提供更多上下文信息 |
+
+```javascript
+// 上报字符串错误
+arms.error('网络请求失败');
+
+// 上报错误对象
+arms.error(new Error('API 调用异常'));
+
+// 上报错误信息和描述
+arms.error('数据加载失败', '请检查网络连接');
+
+// 上报自定义对象
+arms.error({ code: 404, message: '资源未找到' });
+```
 
 ### setUserKey(index, value)
 
-设置用户自定义键值，用于业务标记。
+设置用户自定义键值，用于业务标记，预留了 6 个字段，可根据实际情况设置
 
 | 参数 | 类型 | 必填 | 说明 |
 | --- | --- | --- | --- |
 | index | number | 是 | 键索引，范围 1-6 |
 | value | string | 是 | 键值 |
+
+```javascript
+// 设置用户标记
+arms.setUserKey(1, 'uid');
+arms.setUserKey(2, 'phone');
+arms.setUserKey(3, 'token');
+```
 
 ## 上报数据字段说明
 
@@ -208,6 +217,29 @@ pnpm build
 # 类型检查
 pnpm type-check
 ```
+
+## 构建与优化
+
+构建过程会自动清理 `dist` 目录并显示打包后的文件大小信息。
+
+```bash
+# 构建项目
+pnpm build
+```
+
+构建完成后，会生成以下信息：
+
+1. 文件大小统计：
+   - 原始大小
+   - 压缩后大小
+   - Gzip 压缩后大小
+   - Brotli 压缩后大小
+
+2. 详细的打包分析报告：
+   - 控制台输出每个文件的大小和占比
+   - 在 `dist/stats.html` 生成可视化的打包分析报告
+
+这些信息可以帮助你了解代码包的构成，从而有针对性地进行优化，减小最终打包文件的大小。
 
 ## 许可证
 
