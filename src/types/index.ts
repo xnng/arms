@@ -122,6 +122,12 @@ export interface LogData {
   user_key_5: string;
   /** 用户自定义键6 */
   user_key_6: string;
+  /** 小程序场景值 */
+  weapp_scene: string;
+  /** 小程序启动参数 */
+  weapp_query: string;
+  /** 小程序分享来源 */
+  weapp_refer_info: string;
 }
 
 // 全局对象类型定义
@@ -150,6 +156,39 @@ export interface UniApp {
     /** 页面完整路径 */
     __route__: string;
   }>;
+  /** 获取小程序启动信息 */
+  getLaunchOptionsSync: () => {
+    /** 启动小程序的路径 */
+    path: string;
+    /** 启动小程序的场景值 */
+    scene: number;
+    /** 启动小程序的 query 参数 */
+    query: Record<string, string>;
+    /** 分享转发信息 */
+    referrerInfo?: {
+      /** 来源小程序或公众号或 App 的 appId */
+      appId?: string;
+      /** 来源小程序传过来的数据 */
+      extraData?: Record<string, any>;
+    };
+    /** 打开的文件信息 */
+    forwardMaterials?: Array<{
+      /** 文件类型 */
+      type: string;
+      /** 文件名 */
+      name: string;
+      /** 文件路径（如果是webview则是url） */
+      path: string;
+      /** 文件大小 */
+      size: number;
+    }>;
+    /** 从另一个小程序进入小程序时，返回此字段 */
+    shareTicket?: string;
+    /** 通过 API 打开小程序时，由调用方传入 */
+    apiCategory?: string;
+    /** 通过分享卡片进入小程序时，返回此字段 */
+    chatType?: number;
+  };
   /** 发起网络请求 */
   request: (options: {
     /** 请求地址 */

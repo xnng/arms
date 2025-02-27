@@ -27,6 +27,13 @@ export const appBaseInfo: AppBaseInfo = {
   fontSizeSetting: ''
 };
 
+// 小程序启动信息
+export const launchInfo = {
+  scene: '',
+  query: '',
+  referrerInfo: ''
+};
+
 /**
  * 获取小程序账号信息
  */
@@ -38,6 +45,20 @@ export const getAccountInfo = (): void => {
     weappConfig.version = String(version);
   } catch (error: any) {
     console.log('getAccountInfoSync error', error?.stack);
+  }
+};
+
+/**
+ * 获取小程序启动信息
+ */
+export const getLaunchInfo = (): void => {
+  try {
+    const options = uni.getLaunchOptionsSync();
+    launchInfo.scene = String(options.scene || '');
+    launchInfo.query = options.query ? JSON.stringify(options.query) : '';
+    launchInfo.referrerInfo = options.referrerInfo ? JSON.stringify(options.referrerInfo) : '';
+  } catch (error: any) {
+    console.log('getLaunchInfo error', error?.stack);
   }
 };
 

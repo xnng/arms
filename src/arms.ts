@@ -5,9 +5,11 @@ import {
   weappConfig,
   deviceInfo,
   appBaseInfo,
+  launchInfo,
   getAccountInfo,
   getDeviceInfo,
-  getAppBaseInfo
+  getAppBaseInfo,
+  getLaunchInfo
 } from './platform';
 
 /**
@@ -111,6 +113,11 @@ export class Arms {
         getAppBaseInfo();
       }
 
+      // 确保获取到小程序启动信息
+      if (!launchInfo.scene) {
+        getLaunchInfo();
+      }
+
       // 获取当前页面路径
       let pagePath = '';
       try {
@@ -149,6 +156,9 @@ export class Arms {
         weapp_base_version: appBaseInfo.version,
         weapp_base_font_size_scale_factor: appBaseInfo.fontSizeScaleFactor,
         weapp_base_font_size_setting: appBaseInfo.fontSizeSetting,
+        weapp_scene: launchInfo.scene,
+        weapp_query: launchInfo.query,
+        weapp_refer_info: launchInfo.referrerInfo,
         device_id: getDeviceId(),
         user_key_1: this.user_key_1,
         user_key_2: this.user_key_2,
