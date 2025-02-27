@@ -5,12 +5,11 @@ import {
   weappConfig,
   deviceInfo,
   appBaseInfo,
-  launchInfo,
   weappStateInfo,
   getAccountInfo,
   getDeviceInfo,
   getAppBaseInfo,
-  getLaunchInfo,
+  getEnterInfo,
   initWeappState
 } from './platform';
 
@@ -119,9 +118,7 @@ export class Arms {
       }
 
       // 确保获取到小程序启动信息
-      if (!launchInfo.scene) {
-        getLaunchInfo();
-      }
+      const enterInfo = getEnterInfo()
 
       // 获取当前页面路径
       let pagePath = '';
@@ -161,9 +158,10 @@ export class Arms {
         weapp_base_version: appBaseInfo.version,
         weapp_base_font_size_scale_factor: appBaseInfo.fontSizeScaleFactor,
         weapp_base_font_size_setting: appBaseInfo.fontSizeSetting,
-        weapp_scene: launchInfo.scene,
-        weapp_query: launchInfo.query,
-        weapp_refer_info: launchInfo.referrerInfo,
+        weapp_enter_scene: enterInfo.scene,
+        weapp_enter_path: enterInfo.path,
+        weapp_enter_query: enterInfo.query,
+        weapp_enter_refer_info: enterInfo.referrerInfo,
         weapp_state: weappStateInfo.state,
         device_id: getDeviceId(),
         user_key_1: this.user_key_1,

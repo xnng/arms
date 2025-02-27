@@ -27,13 +27,6 @@ export const appBaseInfo: AppBaseInfo = {
   fontSizeSetting: ''
 };
 
-// 小程序启动信息
-export const launchInfo = {
-  scene: '',
-  query: '',
-  referrerInfo: ''
-};
-
 // 应用生命周期信息
 export const weappStateInfo = {
   state: 'foreground' // foreground 或 background
@@ -56,12 +49,19 @@ export const getAccountInfo = (): void => {
 /**
  * 获取小程序启动信息
  */
-export const getLaunchInfo = (): void => {
+export const getEnterInfo = (): any => {
   try {
     const options = uni.getEnterOptionsSync();
-    launchInfo.scene = String(options.scene || '');
-    launchInfo.query = options.query ? JSON.stringify(options.query) : '';
-    launchInfo.referrerInfo = options.referrerInfo ? JSON.stringify(options.referrerInfo) : '';
+    const path = String(options.path || '');
+    const scene = String(options.scene || '');
+    const query = options.query ? JSON.stringify(options.query) : '';
+    const referrerInfo = options.referrerInfo ? JSON.stringify(options.referrerInfo) : '';
+    return {
+      path,
+      scene,
+      query,
+      referrerInfo
+    }
   } catch (error: any) {
     console.log('getEnterOptionsSync error', error?.stack);
   }
@@ -110,7 +110,7 @@ export const initWeappState = (): void => {
     uni.onAppShow(() => {
       weappStateInfo.state = 'foreground';
     });
-    
+
     // 监听应用进入后台
     uni.onAppHide(() => {
       weappStateInfo.state = 'background';

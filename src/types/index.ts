@@ -123,11 +123,13 @@ export interface LogData {
   /** 用户自定义键6 */
   user_key_6: string;
   /** 小程序场景值 */
-  weapp_scene: string;
+  weapp_enter_scene: string;
   /** 小程序启动参数 */
-  weapp_query: string;
+  weapp_enter_query: string;
+  /** 小程序页面路径 */
+  weapp_enter_path: string;
   /** 小程序分享来源 */
-  weapp_refer_info: string;
+  weapp_enter_refer_info: string;
   /** 前台/后台状态 */
   weapp_state: string;
 }
