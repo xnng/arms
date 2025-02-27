@@ -1,10 +1,14 @@
-const typescript = require('@rollup/plugin-typescript');
-const { nodeResolve } = require('@rollup/plugin-node-resolve');
-const commonjs = require('@rollup/plugin-commonjs');
-const { terser } = require('rollup-plugin-terser');
-const json = require('@rollup/plugin-json');
+import typescript from '@rollup/plugin-typescript';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
+import { terser } from 'rollup-plugin-terser';
+import json from '@rollup/plugin-json';
+import del from 'rollup-plugin-delete';
+import filesize from 'rollup-plugin-filesize';
+import { visualizer } from 'rollup-plugin-visualizer';
+import analyzer from 'rollup-plugin-analyzer';
 
-module.exports = {
+export default {
   input: 'src/index.ts',
   output: [
     {
@@ -19,13 +23,35 @@ module.exports = {
     }
   ],
   plugins: [
+    del({ targets: 'dist/*' }),
     nodeResolve(),
     commonjs(),
     json(),
     typescript({
       tsconfig: './tsconfig.json',
     }),
-    terser()
+    terser(),
+    filesize({
+      showMinifiedSize: true,
+      showBrotliSize: true,
+      showGzippedSize: true,
+    }),
+    visualizer({
+      filename: 'dist/stats.html',
+      title: 'Bundle Visualizer',
+      open: true,
+      template: 'treemap', // 可选值: treemap, sunburst, network
+      gzipSize: true,
+      brotliSize: true,
+      sourcemap: true
+    }),
+    analyzer({
+      summaryOnly: false,
+      limit: 10,
+      filter: null,
+      filterSummary: true,
+      skipFormatted: false
+    })
   ],
   external: ['dayjs', 'axios']
 };
