@@ -74,8 +74,6 @@ export interface LogData {
   msg: string;
   /** 日志描述 */
   desc: string;
-  /** 当前页面路径 */
-  page_path: string;
   /** 日志类型 */
   type: string;
   /** 微信小程序 appId */
