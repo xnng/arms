@@ -34,6 +34,11 @@ export const launchInfo = {
   referrerInfo: ''
 };
 
+// 应用生命周期信息
+export const weappStateInfo = {
+  state: 'foreground' // foreground 或 background
+};
+
 /**
  * 获取小程序账号信息
  */
@@ -53,12 +58,12 @@ export const getAccountInfo = (): void => {
  */
 export const getLaunchInfo = (): void => {
   try {
-    const options = uni.getLaunchOptionsSync();
+    const options = uni.getEnterOptionsSync();
     launchInfo.scene = String(options.scene || '');
     launchInfo.query = options.query ? JSON.stringify(options.query) : '';
     launchInfo.referrerInfo = options.referrerInfo ? JSON.stringify(options.referrerInfo) : '';
   } catch (error: any) {
-    console.log('getLaunchInfo error', error?.stack);
+    console.log('getEnterOptionsSync error', error?.stack);
   }
 };
 
@@ -93,5 +98,24 @@ export const getAppBaseInfo = (): void => {
     appBaseInfo.fontSizeSetting = String(result.fontSizeSetting);
   } catch (error: any) {
     console.log('getAppBaseInfo error', error?.stack);
+  }
+};
+
+/**
+ * 初始化应用生命周期信息
+ */
+export const initWeappState = (): void => {
+  try {
+    // 监听应用进入前台
+    uni.onAppShow(() => {
+      weappStateInfo.state = 'foreground';
+    });
+    
+    // 监听应用进入后台
+    uni.onAppHide(() => {
+      weappStateInfo.state = 'background';
+    });
+  } catch (error: any) {
+    console.log('initWeappState error', error?.stack);
   }
 };

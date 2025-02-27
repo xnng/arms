@@ -128,6 +128,8 @@ export interface LogData {
   weapp_query: string;
   /** 小程序分享来源 */
   weapp_refer_info: string;
+  /** 前台/后台状态 */
+  weapp_state: string;
 }
 
 // 全局对象类型定义
@@ -157,7 +159,7 @@ export interface UniApp {
     __route__: string;
   }>;
   /** 获取小程序启动信息 */
-  getLaunchOptionsSync: () => {
+  getEnterOptionsSync: () => {
     /** 启动小程序的路径 */
     path: string;
     /** 启动小程序的场景值 */
@@ -189,6 +191,10 @@ export interface UniApp {
     /** 通过分享卡片进入小程序时，返回此字段 */
     chatType?: number;
   };
+  /** 监听小程序切前台事件 */
+  onAppShow: (callback: (options: any) => void) => void;
+  /** 监听小程序切后台事件 */
+  onAppHide: (callback: () => void) => void;
   /** 发起网络请求 */
   request: (options: {
     /** 请求地址 */

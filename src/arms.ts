@@ -6,10 +6,12 @@ import {
   deviceInfo,
   appBaseInfo,
   launchInfo,
+  weappStateInfo,
   getAccountInfo,
   getDeviceInfo,
   getAppBaseInfo,
-  getLaunchInfo
+  getLaunchInfo,
+  initWeappState
 } from './platform';
 
 /**
@@ -49,6 +51,9 @@ export class Arms {
 
     // 合并默认配置和用户配置
     this.config = { ...defaultConfig, ...config } as Required<ArmsConfig>;
+
+    // 初始化小程序状态信息
+    initWeappState();
 
     // 初始化上报队列
     setTimeout(() => {
@@ -159,6 +164,7 @@ export class Arms {
         weapp_scene: launchInfo.scene,
         weapp_query: launchInfo.query,
         weapp_refer_info: launchInfo.referrerInfo,
+        weapp_state: weappStateInfo.state,
         device_id: getDeviceId(),
         user_key_1: this.user_key_1,
         user_key_2: this.user_key_2,
