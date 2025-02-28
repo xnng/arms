@@ -72,6 +72,8 @@ export interface IPlatform<T extends BaseLogData> {
   uploadLog(logs: T[], slsUrl: string): Promise<void>;
   /** 初始化平台相关信息 */
   init(): void;
+  /** 获取设备ID */
+  getDeviceId(): string;
   /** 获取平台特定的日志数据 */
   getLogData(msg: string | Error | object, desc?: string, type?: string): T;
 }

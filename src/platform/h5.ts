@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import { H5LogData } from '../types/h5';
-import { generateUniqueId, getDeviceId } from '../utils';
+import { generateUniqueId } from '../utils';
 import { IPlatform } from '@/types';
 import axios from 'axios';
 
@@ -65,7 +65,18 @@ export class H5Platform implements IPlatform<H5LogData> {
    * 获取设备ID
    */
   public getDeviceId(): string {
-    return this.deviceId;
+    const storageKey = 'arms_device_id';
+    // 尝试从存储中获取设备ID
+    let deviceId = '';
+    deviceId = localStorage.getItem(storageKey) || '';
+
+    // 如果没有获取到设备ID，则生成一个新的
+    if (!deviceId) {
+      const newDeviceId = generateUniqueId(32);
+      localStorage.setItem(storageKey, newDeviceId);
+      return newDeviceId;
+    }
+    return deviceId;
   }
 
   /**
@@ -246,6 +257,6 @@ export class H5Platform implements IPlatform<H5LogData> {
    * 初始化设备ID
    */
   private initDeviceId(): void {
-    this.deviceId = getDeviceId('h5');
+    this.deviceId = this.getDeviceId()
   }
 }

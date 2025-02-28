@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import { IPlatform } from '../types';
-import { generateUniqueId, getDeviceId } from '../utils';
+import { generateUniqueId } from '../utils';
 import { AppBaseInfo, DeviceInfo, WeappAccountInfo, WeappLogData, WeappState } from '@/types/weapp';
 
 /**
@@ -81,7 +81,18 @@ export class WeappPlatform implements IPlatform<WeappLogData> {
    * 获取设备ID
    */
   public getDeviceId(): string {
-    return this.deviceId;
+    const storageKey = 'arms_device_id';
+    // 尝试从存储中获取设备ID
+    let deviceId = '';
+    deviceId = uni.getStorageSync(storageKey);
+
+    // 如果没有获取到设备ID，则生成一个新的
+    if (!deviceId) {
+      const newDeviceId = generateUniqueId(32);
+      uni.setStorageSync(storageKey, newDeviceId);
+      return newDeviceId;
+    }
+    return deviceId;
   }
 
   /**
@@ -233,6 +244,6 @@ export class WeappPlatform implements IPlatform<WeappLogData> {
    * 初始化设备ID
    */
   private initDeviceId(): void {
-    this.deviceId = getDeviceId('weapp');
+    this.deviceId = this.getDeviceId();
   }
 }
