@@ -60,8 +60,11 @@ export class WeappPlatform implements IPlatform<WeappLogData> {
       uni.request({
         url: slsUrl,
         method: 'POST',
-        data: logs,
+        data: {
+          '__logs__': logs
+        },
         header: {
+          'x-log-apiversion': '0.6.0',
           'content-type': 'application/json'
         },
         success: () => {
@@ -86,7 +89,6 @@ export class WeappPlatform implements IPlatform<WeappLogData> {
    */
   public getLogData(msg: string | Error | object, desc?: string, type: string = 'error'): WeappLogData {
     const enterInfo = this.getEnterInfo();
-
     return {
       logid: generateUniqueId(32),
       logtime: dayjs().format('YYYY-MM-DD HH:mm:ss.SSS'),

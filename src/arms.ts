@@ -29,10 +29,10 @@ export class Arms {
   /** 默认配置 */
   private defaultConfig: Partial<BaseConfig> = {
     maxUploadNum: 10,
-    initDelay: 2000,
-    emptyQueueWaitTime: 1000,
+    initDelay: 3000,
+    emptyQueueWaitTime: 500,
     uploadWaitTime: 1000,
-    errorWaitTime: 3000
+    errorWaitTime: 2000
   };
 
   /**
@@ -72,6 +72,33 @@ export class Arms {
   }
 
   /**
+   * 上报信息
+   * @param msg 错误信息
+   * @param desc 错误描述
+   */
+  public info(msg: string | Error | object, desc?: string): void {
+    this.upload(msg, desc, 'info');
+  }
+
+  /**
+   * 上报警告
+   * @param msg 错误信息
+   * @param desc 错误描述
+   */
+  public warn(msg: string | Error | object, desc?: string): void {
+    this.upload(msg, desc, 'warn');
+  }
+
+  /**
+   * 上报埋点
+   * @param msg 错误信息
+   * @param desc 错误描述
+   */
+  public point(msg: string | Error | object, desc?: string): void {
+    this.upload(msg, desc, 'point');
+  }
+
+  /**
    * 设置用户自定义键
    * @param index 键索引
    * @param value 键值
@@ -84,22 +111,22 @@ export class Arms {
 
     switch (index) {
       case 1:
-        this.user_key_1 = value;
+        this.user_key_1 = String(value);
         break;
       case 2:
-        this.user_key_2 = value;
+        this.user_key_2 = String(value);
         break;
       case 3:
-        this.user_key_3 = value;
+        this.user_key_3 = String(value);
         break;
       case 4:
-        this.user_key_4 = value;
+        this.user_key_4 = String(value);
         break;
       case 5:
-        this.user_key_5 = value;
+        this.user_key_5 = String(value);
         break;
       case 6:
-        this.user_key_6 = value;
+        this.user_key_6 = String(value);
         break;
     }
   }

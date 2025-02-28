@@ -39,7 +39,7 @@ export default {
     visualizer({
       filename: 'dist/stats.html',
       title: 'Bundle Visualizer',
-      open: true,
+      open: false,
       template: 'treemap', // 可选值: treemap, sunburst, network
       gzipSize: true,
       brotliSize: true,
