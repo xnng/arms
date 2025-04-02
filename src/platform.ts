@@ -1,15 +1,14 @@
 import dayjs from 'dayjs';
-import { IPlatform } from '../types';
-import { generateUniqueId } from '../utils';
-import { AppBaseInfo, DeviceInfo, WeappAccountInfo, WeappLogData, WeappState } from '@/types/weapp';
+import { BaseLogData, LogData } from './types';
+import { generateUniqueId } from './utils';
+import { AppBaseInfo, DeviceInfo, UniAppAccountInfo, UniAppState } from './types/uniapp';
 
 /**
- * 小程序平台实现
+ * 平台功能实现
  */
-export class WeappPlatform implements IPlatform<WeappLogData> {
-
-  // 小程序前台还是在后台
-  private weappState: WeappState = ''
+export class Platform {
+  // uni-app 前台还是在后台
+  private uniAppState: UniAppState = ''
 
   // 设备信息
   private deviceInfo: DeviceInfo = {
@@ -17,12 +16,11 @@ export class WeappPlatform implements IPlatform<WeappLogData> {
     model: '',
     system: '',
     platform: '',
-    cpuType: '',
     memorySize: ''
   };
 
-  // 小程序账号信息
-  private accountInfo: WeappAccountInfo = {
+  // 账号信息
+  private accountInfo: UniAppAccountInfo = {
     appId: '',
     version: '',
     envVersion: ''
@@ -33,8 +31,6 @@ export class WeappPlatform implements IPlatform<WeappLogData> {
     SDKVersion: '',
     language: '',
     version: '',
-    fontSizeScaleFactor: '',
-    fontSizeSetting: '',
     enableDebug: ''
   };
 
@@ -48,14 +44,14 @@ export class WeappPlatform implements IPlatform<WeappLogData> {
     this.getDeviceInfo();
     this.getAccountInfo();
     this.getAppBaseInfo();
-    this.initWeappState();
+    this.initUniAppState();
     this.initDeviceId();
   }
 
   /**
    * 上传日志
    */
-  public async uploadLog(logs: WeappLogData[], slsUrl: string): Promise<void> {
+  public async uploadLog(logs: LogData[], slsUrl: string): Promise<void> {
     return new Promise((resolve, reject) => {
       uni.request({
         url: slsUrl,
@@ -96,9 +92,9 @@ export class WeappPlatform implements IPlatform<WeappLogData> {
   }
 
   /**
-   * 获取平台特定的日志数据
+   * 获取日志数据
    */
-  public getLogData(msg: string | Error | object, desc?: string, type: string = 'error'): WeappLogData {
+  public getLogData(msg: string | Error | object, desc?: string, type: string = 'error'): LogData {
     const enterInfo = this.getEnterInfo();
     return {
       logid: generateUniqueId(32),
@@ -106,26 +102,23 @@ export class WeappPlatform implements IPlatform<WeappLogData> {
       msg: Object.prototype.toString.call(msg) === '[object Object]' ? JSON.stringify(msg) : String(msg),
       desc: desc || '',
       type,
-      weapp_account_appid: this.accountInfo.appId,
-      weapp_account_env: this.accountInfo.envVersion,
-      weapp_account_version: this.accountInfo.version,
+      account_appid: this.accountInfo.appId,
+      account_env: this.accountInfo.envVersion,
+      account_version: this.accountInfo.version,
       device_brand: this.deviceInfo.brand,
       device_model: this.deviceInfo.model,
       device_system: this.deviceInfo.system,
       device_platform: this.deviceInfo.platform,
-      device_cpu_type: this.deviceInfo.cpuType,
       device_memory_size: this.deviceInfo.memorySize,
-      weapp_base_sdk_version: this.appBaseInfo.SDKVersion,
-      weapp_base_enable_debug: this.appBaseInfo.enableDebug,
-      weapp_base_language: this.appBaseInfo.language,
-      weapp_base_version: this.appBaseInfo.version,
-      weapp_base_font_size_scale_factor: this.appBaseInfo.fontSizeScaleFactor,
-      weapp_base_font_size_setting: this.appBaseInfo.fontSizeSetting,
-      weapp_enter_scene: enterInfo.scene,
-      weapp_enter_path: enterInfo.path,
-      weapp_enter_query: enterInfo.query,
-      weapp_enter_refer_info: enterInfo.referrerInfo,
-      weapp_state: this.weappState,
+      base_sdk_version: this.appBaseInfo.SDKVersion,
+      base_enable_debug: this.appBaseInfo.enableDebug,
+      base_language: this.appBaseInfo.language,
+      base_version: this.appBaseInfo.version,
+      enter_scene: enterInfo.scene,
+      enter_path: enterInfo.path,
+      enter_query: enterInfo.query,
+      enter_refer_info: enterInfo.referrerInfo,
+      state: this.uniAppState,
       device_id: this.deviceId,
       version: '',  // 由 Arms 类填充
       appid: '',    // 由 Arms 类填充
@@ -143,14 +136,13 @@ export class WeappPlatform implements IPlatform<WeappLogData> {
    */
   private getDeviceInfo(): void {
     try {
-      const info = uni.getSystemInfoSync();
+      const info = uni.getDeviceInfo();
       this.deviceInfo = {
         brand: String(info.brand || ''),
         model: String(info.model || ''),
         system: String(info.system || ''),
         platform: String(info.platform || ''),
-        cpuType: String(info.cpuType || ''),
-        memorySize: String(info.memorySize || '')
+        memorySize: String(info.deviceId || '')
       };
     } catch (error: any) {
       console.error('getDeviceInfo error', error?.stack);
@@ -158,7 +150,7 @@ export class WeappPlatform implements IPlatform<WeappLogData> {
   }
 
   /**
-   * 获取小程序账号信息
+   * 获取应用账号信息
    */
   private getAccountInfo(): void {
     try {
@@ -180,13 +172,11 @@ export class WeappPlatform implements IPlatform<WeappLogData> {
    */
   private getAppBaseInfo(): void {
     try {
-      const info = uni.getSystemInfoSync();
+      const info = uni.getAppBaseInfo();
       this.appBaseInfo = {
         SDKVersion: String(info.SDKVersion || ''),
         language: String(info.language || ''),
         version: String(info.version || ''),
-        fontSizeScaleFactor: String(info.fontSizeScaleFactor || ''),
-        fontSizeSetting: String(info.fontSizeSetting || ''),
         enableDebug: String(info.enableDebug || '')
       };
     } catch (error: any) {
@@ -195,7 +185,7 @@ export class WeappPlatform implements IPlatform<WeappLogData> {
   }
 
   /**
-   * 获取小程序启动信息
+   * 获取应用启动信息
    */
   private getEnterInfo(): any {
     try {
@@ -222,21 +212,21 @@ export class WeappPlatform implements IPlatform<WeappLogData> {
   }
 
   /**
-   * 初始化小程序状态信息
+   * 初始化应用状态信息
    */
-  private initWeappState(): void {
+  private initUniAppState(): void {
     try {
       // 监听应用进入前台
       uni.onAppShow(() => {
-        this.weappState = 'foreground';
+        this.uniAppState = 'foreground';
       });
 
       // 监听应用进入后台
       uni.onAppHide(() => {
-        this.weappState = 'background';
+        this.uniAppState = 'background';
       });
     } catch (error: any) {
-      console.error('initWeappState error', error?.stack);
+      console.error('initUniAppState error', error?.stack);
     }
   }
 
@@ -246,4 +236,4 @@ export class WeappPlatform implements IPlatform<WeappLogData> {
   private initDeviceId(): void {
     this.deviceId = this.getDeviceId();
   }
-}
+} 

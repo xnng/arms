@@ -1,5 +1,4 @@
-import { H5LogData } from "./h5";
-import { WeappLogData } from "./weapp";
+import { UniAppLogData } from "./uniapp";
 
 // 基础配置接口
 export interface BaseConfig {
@@ -21,12 +20,6 @@ export interface BaseConfig {
   uploadWaitTime?: number;
   /** 错误后等待时间（毫秒） */
   errorWaitTime?: number;
-}
-
-// Arms 配置接口
-export interface ArmsConfig extends BaseConfig {
-  /** 平台类型 */
-  platformType: 'weapp' | 'h5';
 }
 
 // 通用日志数据接口
@@ -62,18 +55,4 @@ export interface BaseLogData {
 }
 
 // 通用日志数据类型
-export type LogData = WeappLogData | H5LogData;
-
-// 平台接口定义
-export interface IPlatform<T extends BaseLogData> {
-  /** 获取设备ID */
-  getDeviceId(): string;
-  /** 上传日志 */
-  uploadLog(logs: T[], slsUrl: string): Promise<void>;
-  /** 初始化平台相关信息 */
-  init(): void;
-  /** 获取设备ID */
-  getDeviceId(): string;
-  /** 获取平台特定的日志数据 */
-  getLogData(msg: string | Error | object, desc?: string, type?: string): T;
-}
+export type LogData = UniAppLogData;
