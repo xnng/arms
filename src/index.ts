@@ -1,6 +1,3 @@
-import { createArms } from './arms';
+import arms from './arms';
 
-// 导出函数
-export {
-  createArms
-};
+export default arms;

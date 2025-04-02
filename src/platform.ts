@@ -122,12 +122,7 @@ export class Platform {
       device_id: this.deviceId,
       version: '',  // 由 Arms 类填充
       appid: '',    // 由 Arms 类填充
-      user_key_1: '',  // 由 Arms 类填充
-      user_key_2: '',  // 由 Arms 类填充
-      user_key_3: '',  // 由 Arms 类填充
-      user_key_4: '',  // 由 Arms 类填充
-      user_key_5: '',  // 由 Arms 类填充
-      user_key_6: ''   // 由 Arms 类填充
+      user: '',  // 由 Arms 类填
     };
   }
 

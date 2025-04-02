@@ -10,18 +10,8 @@ export class Arms {
   protected config: Required<BaseConfig>;
   /** 上报队列 */
   protected queue: LogData[];
-  /** 用户自定义键1 */
-  protected user_key_1: string;
-  /** 用户自定义键2 */
-  protected user_key_2: string;
-  /** 用户自定义键3 */
-  protected user_key_3: string;
-  /** 用户自定义键4 */
-  protected user_key_4: string;
-  /** 用户自定义键5 */
-  protected user_key_5: string;
-  /** 用户自定义键6 */
-  protected user_key_6: string;
+  /** 用户信息 */
+  protected user: string;
   /** 平台实现 */
   protected platform: Platform;
   /** 是否正在上报 */
@@ -34,29 +24,41 @@ export class Arms {
     uploadWaitTime: 1000,
     errorWaitTime: 2000
   };
+  /** 是否已初始化 */
+  private initialized: boolean;
 
   /**
    * 构造函数
-   * @param config 配置
    */
-  constructor(config: BaseConfig) {
+  constructor() {
     // 创建平台实现
     this.platform = new Platform();
+    this.queue = [];
+    this.isUploading = false;
+    this.user = '';
+    this.initialized = false;
+    
+    // 初始化默认配置
+    this.config = this.defaultConfig as Required<BaseConfig>;
+  }
 
+  /**
+   * 初始化方法
+   * @param config 配置
+   */
+  public init(config: BaseConfig): void {
+    if (this.initialized) {
+      console.warn('Arms 已经初始化过，请勿重复初始化');
+      return;
+    }
+    
     // 合并默认配置和用户配置
     this.config = { ...this.defaultConfig, ...config } as Required<BaseConfig>;
     this.platform.init();
-    this.queue = [];
-    this.isUploading = false;
-    this.user_key_1 = '';
-    this.user_key_2 = '';
-    this.user_key_3 = '';
-    this.user_key_4 = '';
-    this.user_key_5 = '';
-    this.user_key_6 = '';
-
+    
     // 初始化上报队列
     setTimeout(() => {
+      this.initialized = true;
       this.runQueue();
     }, this.config.initDelay);
   }
@@ -66,7 +68,8 @@ export class Arms {
    * @param msg 错误信息
    * @param desc 错误描述
    */
-  public error(msg: string | Error | object, desc?: string): void {
+  public async error(msg: string | Error | object, desc?: string): Promise<void> {
+    await this.checkInit();
     this.upload(msg, desc, 'error');
   }
 
@@ -75,7 +78,8 @@ export class Arms {
    * @param msg 错误信息
    * @param desc 错误描述
    */
-  public info(msg: string | Error | object, desc?: string): void {
+  public async info(msg: string | Error | object, desc?: string): Promise<void> {
+    await this.checkInit();
     this.upload(msg, desc, 'info');
   }
 
@@ -84,7 +88,8 @@ export class Arms {
    * @param msg 错误信息
    * @param desc 错误描述
    */
-  public warn(msg: string | Error | object, desc?: string): void {
+  public async warn(msg: string | Error | object, desc?: string): Promise<void> {
+    await this.checkInit();
     this.upload(msg, desc, 'warn');
   }
 
@@ -93,40 +98,24 @@ export class Arms {
    * @param msg 错误信息
    * @param desc 错误描述
    */
-  public point(msg: string | Error | object, desc?: string): void {
+  public async point(msg: string | Error | object, desc?: string): Promise<void> {
+    await this.checkInit();
     this.upload(msg, desc, 'point');
   }
 
   /**
-   * 设置用户自定义键
-   * @param index 键索引
-   * @param value 键值
+   * 设置用户信息
    */
-  public setUserKey(index: number, value: string): void {
-    if (index < 1 || index > 6) {
-      console.error('用户自定义键索引必须在1-6之间');
-      return;
-    }
+  public setUser(user: string | object): void {
+    this.user = JSON.stringify(user);
+  }
 
-    switch (index) {
-      case 1:
-        this.user_key_1 = String(value);
-        break;
-      case 2:
-        this.user_key_2 = String(value);
-        break;
-      case 3:
-        this.user_key_3 = String(value);
-        break;
-      case 4:
-        this.user_key_4 = String(value);
-        break;
-      case 5:
-        this.user_key_5 = String(value);
-        break;
-      case 6:
-        this.user_key_6 = String(value);
-        break;
+  /**
+   * 检查是否已初始化
+   */
+  private async checkInit(): Promise<void> {
+    if (!this.initialized) {
+      await sleep(this.config.initDelay)
     }
   }
 
@@ -150,12 +139,7 @@ export class Arms {
       // 填充通用字段
       data.version = this.config.appVersion;
       data.appid = this.config.appId;
-      data.user_key_1 = this.user_key_1;
-      data.user_key_2 = this.user_key_2;
-      data.user_key_3 = this.user_key_3;
-      data.user_key_4 = this.user_key_4;
-      data.user_key_5 = this.user_key_5;
-      data.user_key_6 = this.user_key_6;
+      data.user = this.user;
 
       // 添加到上报队列
       this.queue.push(data);
@@ -209,11 +193,8 @@ export class Arms {
   }
 }
 
-/**
- * 创建 Arms 实例
- * @param config 配置
- * @returns Arms 实例
- */
-export function createArms(config: BaseConfig) {
-  return new Arms(config);
-}
+// 默认单例
+const arms = new Arms();
+
+// 默认导出单例对象
+export default arms;
