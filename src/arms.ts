@@ -1,5 +1,5 @@
-import { BaseConfig, IPlatform, LogData } from './types';
-import { PlatformType, PlatformFactory } from './platform';
+import { BaseConfig, LogData } from './types';
+import { Platform } from './platform';
 import { sleep } from './utils';
 
 /**
@@ -23,7 +23,7 @@ export class Arms {
   /** 用户自定义键6 */
   protected user_key_6: string;
   /** 平台实现 */
-  protected platform: IPlatform<LogData>;
+  protected platform: Platform;
   /** 是否正在上报 */
   private isUploading: boolean;
   /** 默认配置 */
@@ -38,11 +38,10 @@ export class Arms {
   /**
    * 构造函数
    * @param config 配置
-   * @param platformType 平台类型
    */
-  constructor(config: BaseConfig, platformType: PlatformType) {
-    // 创建对应平台的实现
-    this.platform = PlatformFactory.createPlatform(platformType) as IPlatform<LogData>;
+  constructor(config: BaseConfig) {
+    // 创建平台实现
+    this.platform = new Platform();
 
     // 合并默认配置和用户配置
     this.config = { ...this.defaultConfig, ...config } as Required<BaseConfig>;
@@ -213,9 +212,8 @@ export class Arms {
 /**
  * 创建 Arms 实例
  * @param config 配置
- * @param platformType 平台类型
  * @returns Arms 实例
  */
-export function createArms(config: BaseConfig, platformType: PlatformType) {
-  return new Arms(config, platformType);
+export function createArms(config: BaseConfig) {
+  return new Arms(config);
 }

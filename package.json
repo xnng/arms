@@ -1,22 +1,27 @@
 {
   "name": "@xnng/arms",
-  "version": "1.0.4",
-  "description": "前端应用监控",
-  "main": "dist/index.js",
-  "module": "dist/index.esm.js",
-  "types": "dist/index.d.ts",
+  "version": "1.0.0",
+  "description": "应用监控 SDK",
   "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
   "files": [
     "dist"
   ],
   "scripts": {
-    "dev": "rollup -c -w",
-    "build": "rollup -c",
-    "type-check": "tsc --noEmit",
-    "postpublish": "sync-to-mirror"
+    "build": "vite build"
   },
   "keywords": [
-    "arms"
+    "monitor",
+    "uniapp"
   ],
   "author": "xnng",
   "license": "MIT",
@@ -29,25 +34,13 @@
   },
   "homepage": "https://github.com/xnng/arms#readme",
   "devDependencies": {
-    "@easyv/sync-to-mirror": "^0.0.2",
-    "@rollup/plugin-commonjs": "^24.0.0",
-    "@rollup/plugin-json": "^6.1.0",
-    "@rollup/plugin-node-resolve": "^15.0.0",
-    "@rollup/plugin-typescript": "^11.0.0",
-    "@types/node": "^18.11.18",
-    "axios": "^1.8.1",
-    "dayjs": "^1.11.7",
-    "rollup": "^3.10.0",
-    "rollup-plugin-analyzer": "^4.0.0",
-    "rollup-plugin-delete": "^3.0.0",
-    "rollup-plugin-filesize": "^10.0.0",
-    "rollup-plugin-terser": "^7.0.2",
-    "rollup-plugin-visualizer": "^5.14.0",
-    "tslib": "^2.4.1",
-    "typescript": "^4.9.4"
+    "@dcloudio/types": "^3.4.1",
+    "typescript": "^5.4.2",
+    "vite": "^6.2.4",
+    "vite-plugin-dts": "^3.7.3",
+    "dayjs": "^1.11.7"
   },
   "peerDependencies": {
-    "axios": "^1.0.0",
     "dayjs": "^1.0.0"
   }
 }
