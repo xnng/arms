@@ -1,6 +1,6 @@
 {
   "name": "@xnng/arms",
-  "version": "1.1.7",
+  "version": "1.1.10",
   "description": "uniapp 应用监控 SDK",
   "type": "module",
   "main": "dist/index.js",
@@ -17,7 +17,7 @@
     "dist"
   ],
   "scripts": {
-    "publish": "pnpm build && npm publish --access public && pnpm sync",
+    "dep": "pnpm build && npm publish --access public && pnpm sync",
     "build": "vite build",
     "sync": "sync-to-mirror"
   },

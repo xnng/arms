@@ -100,6 +100,7 @@ export class Arms {
    */
   public async point(msg: string | Error | object, desc?: string): Promise<void> {
     await this.checkInit();
+    console.log("point arms")
     this.upload(msg, desc, 'point');
   }
 

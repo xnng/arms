@@ -1,5 +1,3 @@
-import { UniAppLogData } from "./uniapp";
-
 // 基础配置接口
 export interface BaseConfig {
   /** 日志上传地址 */
@@ -23,13 +21,9 @@ export interface BaseConfig {
 }
 
 // 通用日志数据接口
-export interface BaseLogData {
+export interface LogData {
   /** 日志唯一ID */
   logid: string;
-  /** 应用版本 */
-  version: string;
-  /** 应用ID */
-  appid: string;
   /** 日志时间 */
   logtime: string;
   /** 日志消息 */
@@ -38,11 +32,25 @@ export interface BaseLogData {
   desc: string;
   /** 日志类型 */
   type: string;
-  /** 设备唯一标识 */
-  device_id: string;
   /** 用户信息 */
   user: string;
+  /** 应用版本 */
+  version: string;
+  /** 应用ID */
+  appid: string;
+  /** 应用状态 */
+  state: string;
+  /** 设备唯一标识 */
+  device_id: string;
+  /** 小程序账号信息 */
+  info_account: string;
+  /** 设备信息 */
+  info_device: string;
+  /** 进入信息 */
+  info_enter: string;
 }
 
-// 通用日志数据类型
-export type LogData = UniAppLogData;
+/**
+ * 应用状态
+ */
+export type UniAppState = 'foreground' | 'background' | '';

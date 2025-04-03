@@ -1,7 +1,9 @@
 import dayjs from 'dayjs';
-import { BaseLogData, LogData } from './types';
+import { LogData, UniAppState } from './types';
 import { generateUniqueId } from './utils';
-import { AppBaseInfo, DeviceInfo, UniAppAccountInfo, UniAppState } from './types/uniapp';
+
+// 声明全局wx对象
+declare const wx: any;
 
 /**
  * 平台功能实现
@@ -11,28 +13,13 @@ export class Platform {
   private uniAppState: UniAppState = ''
 
   // 设备信息
-  private deviceInfo: DeviceInfo = {
-    brand: '',
-    model: '',
-    system: '',
-    platform: '',
-    memorySize: ''
-  };
+  private deviceInfo: any = {}
 
   // 账号信息
-  private accountInfo: UniAppAccountInfo = {
-    appId: '',
-    version: '',
-    envVersion: ''
-  };
+  private accountInfo: any = {}
 
   // 应用基础信息
-  private appBaseInfo: AppBaseInfo = {
-    SDKVersion: '',
-    language: '',
-    version: '',
-    enableDebug: ''
-  };
+  private appBaseInfo: any = {}
 
   // 设备ID
   private deviceId: string = '';
@@ -84,7 +71,7 @@ export class Platform {
 
     // 如果没有获取到设备ID，则生成一个新的
     if (!deviceId) {
-      const newDeviceId = generateUniqueId(32);
+      const newDeviceId = generateUniqueId();
       uni.setStorageSync(storageKey, newDeviceId);
       return newDeviceId;
     }
@@ -97,32 +84,19 @@ export class Platform {
   public getLogData(msg: string | Error | object, desc?: string, type: string = 'error'): LogData {
     const enterInfo = this.getEnterInfo();
     return {
-      logid: generateUniqueId(32),
+      logid: generateUniqueId(),
       logtime: dayjs().format('YYYY-MM-DD HH:mm:ss.SSS'),
       msg: Object.prototype.toString.call(msg) === '[object Object]' ? JSON.stringify(msg) : String(msg),
       desc: desc || '',
       type,
-      account_appid: this.accountInfo.appId,
-      account_env: this.accountInfo.envVersion,
-      account_version: this.accountInfo.version,
-      device_brand: this.deviceInfo.brand,
-      device_model: this.deviceInfo.model,
-      device_system: this.deviceInfo.system,
-      device_platform: this.deviceInfo.platform,
-      device_memory_size: this.deviceInfo.memorySize,
-      base_sdk_version: this.appBaseInfo.SDKVersion,
-      base_enable_debug: this.appBaseInfo.enableDebug,
-      base_language: this.appBaseInfo.language,
-      base_version: this.appBaseInfo.version,
-      enter_scene: enterInfo.scene,
-      enter_path: enterInfo.path,
-      enter_query: enterInfo.query,
-      enter_refer_info: enterInfo.referrerInfo,
+      user: '', 
+      version: '',
+      appid: '',
       state: this.uniAppState,
       device_id: this.deviceId,
-      version: '',  // 由 Arms 类填充
-      appid: '',    // 由 Arms 类填充
-      user: '',  // 由 Arms 类填
+      info_account: JSON.stringify(this.accountInfo),
+      info_device: JSON.stringify(this.deviceInfo),
+      info_enter: JSON.stringify(enterInfo || {})
     };
   }
 
@@ -131,7 +105,12 @@ export class Platform {
    */
   private getDeviceInfo(): void {
     try {
-      const info = uni.getDeviceInfo();
+      let info =  uni.getDeviceInfo();
+      // 检查info是否为Promise对象
+      if (info instanceof Promise) {
+        // 如果是Promise，那么就代表 uniapp 版本过低还没有这个 api
+        info = wx.getDeviceInfo();
+      }
       this.deviceInfo = {
         brand: String(info.brand || ''),
         model: String(info.model || ''),
@@ -149,13 +128,14 @@ export class Platform {
    */
   private getAccountInfo(): void {
     try {
-      const info = uni.getAccountInfoSync();
+      let info = uni.getAccountInfoSync();
+      // 检查info是否为Promise对象
+      if (info instanceof Promise) {
+        // 如果是Promise，那么就代表 uniapp 版本过低还没有这个 api
+        info = wx.getAccountInfoSync();
+      }
       if (info && info.miniProgram) {
-        this.accountInfo = {
-          appId: String(info.miniProgram.appId || ''),
-          version: String(info.miniProgram.version || ''),
-          envVersion: String(info.miniProgram.envVersion || '')
-        };
+        this.accountInfo = info.miniProgram
       }
     } catch (error: any) {
       console.error('getAccountInfo error', error?.stack);
@@ -167,13 +147,13 @@ export class Platform {
    */
   private getAppBaseInfo(): void {
     try {
-      const info = uni.getAppBaseInfo();
-      this.appBaseInfo = {
-        SDKVersion: String(info.SDKVersion || ''),
-        language: String(info.language || ''),
-        version: String(info.version || ''),
-        enableDebug: String(info.enableDebug || '')
-      };
+      let info = uni.getAppBaseInfo();
+      // 检查info是否为Promise对象
+      if (info instanceof Promise) {
+        // 如果是Promise，那么就代表 uniapp 版本过低还没有这个 api
+        info = wx.getAppBaseInfo();
+      }
+      this.appBaseInfo = info
     } catch (error: any) {
       console.error('getAppBaseInfo error', error?.stack);
     }
@@ -184,25 +164,15 @@ export class Platform {
    */
   private getEnterInfo(): any {
     try {
-      const options = uni.getEnterOptionsSync();
-      const path = String(options.path || '');
-      const scene = String(options.scene || '');
-      const query = options.query ? JSON.stringify(options.query) : '';
-      const referrerInfo = options.referrerInfo ? JSON.stringify(options.referrerInfo) : '';
-      return {
-        path,
-        scene,
-        query,
-        referrerInfo
-      };
+      let options = uni.getEnterOptionsSync();
+      // 检查options是否为Promise对象
+      if (options instanceof Promise) {
+        // 如果是Promise，那么就代表 uniapp 版本过低还没有这个 api
+        options = wx.getEnterOptionsSync();
+      }
+      return options
     } catch (error: any) {
       console.error('getEnterOptionsSync error', error?.stack);
-      return {
-        path: '',
-        scene: '',
-        query: '',
-        referrerInfo: ''
-      };
     }
   }
 
