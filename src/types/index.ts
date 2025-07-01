@@ -48,6 +48,18 @@ export interface LogData {
   info_device: string;
   /** 进入信息 */
   info_enter: string;
+  /** 用户自定义键1 */
+  user_key_1?: string;
+  /** 用户自定义键2 */
+  user_key_2?: string;
+  /** 用户自定义键3 */
+  user_key_3?: string;
+  /** 用户自定义键4 */
+  user_key_4?: string;
+  /** 用户自定义键5 */
+  user_key_5?: string;
+  /** 用户自定义键6 */
+  user_key_6?: string;
 }
 
 /**

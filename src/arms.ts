@@ -12,6 +12,8 @@ export class Arms {
   protected queue: LogData[];
   /** 用户信息 */
   protected user: string;
+  /** 用户自定义键值对 */
+  protected userKeys: { [key: number]: string } = {};
   /** 平台实现 */
   protected platform: Platform;
   /** 是否正在上报 */
@@ -22,7 +24,8 @@ export class Arms {
     initDelay: 3000,
     emptyQueueWaitTime: 500,
     uploadWaitTime: 1000,
-    errorWaitTime: 2000
+    errorWaitTime: 2000,
+    autoCapture: false
   };
   /** 是否已初始化 */
   private initialized: boolean;
@@ -55,6 +58,11 @@ export class Arms {
     // 合并默认配置和用户配置
     this.config = { ...this.defaultConfig, ...config } as Required<BaseConfig>;
     this.platform.init();
+    
+    // 如果开启了自动捕获，则设置错误监听
+    if (this.config.autoCapture) {
+      this.setupAutoCapture();
+    }
     
     // 初始化上报队列
     setTimeout(() => {
@@ -100,7 +108,6 @@ export class Arms {
    */
   public async point(msg: string | Error | object, desc?: string): Promise<void> {
     await this.checkInit();
-    console.log("point arms")
     this.upload(msg, desc, 'point');
   }
 
@@ -112,11 +119,57 @@ export class Arms {
   }
 
   /**
+   * 设置用户自定义键值
+   * @param index 键索引，范围 1-6
+   * @param value 键值
+   */
+  public setUserKey(index: number, value: string): void {
+    if (index < 1 || index > 6) {
+      console.warn('setUserKey: index 必须在 1-6 范围内');
+      return;
+    }
+    this.userKeys[index] = value;
+  }
+
+  /**
+   * 设置自动捕获错误
+   */
+  private setupAutoCapture(): void {
+    try {
+      // 捕获未处理的 Promise 错误
+      if (typeof window !== 'undefined') {
+        window.addEventListener('unhandledrejection', (event) => {
+          this.error(event.reason, 'Unhandled Promise Rejection');
+        });
+        
+        // 捕获全局错误
+        window.addEventListener('error', (event) => {
+          this.error(event.error || event.message, 'Global Error');
+        });
+      }
+    } catch (error) {
+      console.error('设置自动捕获失败', error);
+    }
+  }
+
+  /**
    * 检查是否已初始化
    */
   private async checkInit(): Promise<void> {
     if (!this.initialized) {
-      await sleep(this.config.initDelay)
+      // 使用轮询方式等待初始化完成，避免固定延迟可能导致的问题
+      const maxWaitTime = this.config.initDelay + 5000; // 额外等待5秒作为超时保护
+      const pollInterval = 100; // 每100ms检查一次
+      let waitedTime = 0;
+      
+      while (!this.initialized && waitedTime < maxWaitTime) {
+        await sleep(pollInterval);
+        waitedTime += pollInterval;
+      }
+      
+      if (!this.initialized) {
+        console.warn('Arms 初始化超时，但仍继续执行');
+      }
     }
   }
 
@@ -141,6 +194,11 @@ export class Arms {
       data.version = this.config.appVersion;
       data.appid = this.config.appId;
       data.user = this.user;
+
+      // 填充用户自定义键值
+      for (let i = 1; i <= 6; i++) {
+        (data as any)[`user_key_${i}`] = this.userKeys[i] || '';
+      }
 
       // 添加到上报队列
       this.queue.push(data);

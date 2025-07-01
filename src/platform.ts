@@ -116,7 +116,7 @@ export class Platform {
         model: String(info.model || ''),
         system: String(info.system || ''),
         platform: String(info.platform || ''),
-        memorySize: String(info.deviceId || '')
+        memorySize: String(info.memorySize || '')
       };
     } catch (error: any) {
       console.error('getDeviceInfo error', error?.stack);
